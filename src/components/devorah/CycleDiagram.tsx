@@ -211,12 +211,15 @@ const VerseSidePanel: React.FC<{ stepId: string; verses: VerseChunk[] }> = ({ st
     <motion.div
       initial={{ opacity: 0, scale: 0.85 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="absolute z-40 w-52 md:w-56 p-3 rounded-xl bg-card shadow-md ring-1 ring-border pointer-events-none"
+      className="absolute z-40 w-52 md:w-56 p-3 rounded-xl bg-card shadow-md ring-1 ring-border pointer-events-none flex flex-col gap-2"
       style={positions[stepId]}
+      dir="rtl"
     >
-      <p className="text-[11px] leading-relaxed text-primary text-right" dir="rtl">
-        {verses.map((verse) => verse.text).join('\n\n')}
-      </p>
+      {verses.map((verse) => (
+        <p key={verse.id} className="text-[11px] leading-relaxed text-primary text-right">
+          {verse.text}
+        </p>
+      ))}
     </motion.div>
   );
 };
