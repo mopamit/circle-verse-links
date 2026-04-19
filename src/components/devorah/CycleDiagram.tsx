@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
 import { useDroppable } from '@dnd-kit/core';
 import { CycleStep, VerseChunk } from '@/data/devorahGame';
 
@@ -95,44 +95,6 @@ const DroppableCircle: React.FC<{
   return <StepCircle {...props} dropRef={setNodeRef} isOver={isOver} />;
 };
 
-/** Popover that shows verse text when clicking a filled circle */
-const VersePopover: React.FC<{ verses: VerseChunk[]; onClose: () => void }> = ({ verses, onClose }) => {
-  if (verses.length === 0) return null;
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ duration: 0.15 }}
-      className="absolute z-50 w-60 p-3 rounded-xl bg-card shadow-lg ring-1 ring-border"
-      style={{ bottom: `calc(100% + 12px)`, left: '50%', transform: 'translateX(-50%)' }}
-    >
-      <button
-        onClick={onClose}
-        className="absolute top-1 left-1 text-muted-foreground hover:text-foreground text-xs w-5 h-5 flex items-center justify-center rounded-full"
-      >
-        ✕
-      </button>
-      {verses.map((v, i) => (
-        <p key={v.id} className={`text-[11px] leading-relaxed text-primary text-right ${i > 0 ? 'mt-2 pt-2 border-t border-border' : ''}`} dir="rtl">
-          {v.text}
-        </p>
-      ))}
-    </motion.div>
-  );
-};
-
-/** Small indicator showing a verse is placed (for pinned circles) */
-const FilledIndicator: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({ onClick }) => (
-  <button
-    onClick={onClick}
-    className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center text-[10px] font-bold shadow-sm cursor-pointer z-20 hover:scale-110 transition-transform"
-    title="לחצו לצפייה בפסוק"
-  >
-    📖
-  </button>
-);
-
 export const CycleDiagram = React.forwardRef<HTMLDivElement, Props>(
   ({ steps, placedVerses, highlightStepId, shakeStepId, onCircleClick, selectedVerseId, capturePadding }, ref) => {
     const SIZE = 560;
@@ -141,17 +103,9 @@ export const CycleDiagram = React.forwardRef<HTMLDivElement, Props>(
     const centerX = frameWidth / 2;
     const centerY = frameHeight / 2;
 
-    const [openPopover, setOpenPopover] = useState<string | null>(null);
-
-    const handleCircleClickInternal = (stepId: string, hasPinnedOnly: boolean) => {
+    const handleCircleClickInternal = (stepId: string) => {
       if (selectedVerseId) {
-        // If a verse is selected for placement, forward to parent
         onCircleClick?.(stepId);
-        return;
-      }
-      if (hasPinnedOnly) {
-        // Toggle popover for pinned circles
-        setOpenPopover((prev) => (prev === stepId ? null : stepId));
       }
     };
 
@@ -179,10 +133,8 @@ export const CycleDiagram = React.forwardRef<HTMLDivElement, Props>(
           const x = Math.cos(rad) * RADIUS;
           const y = Math.sin(rad) * RADIUS;
           const placed = placedVerses[step.id] || [];
-          const hasPinned = placed.some((v) => v.pinned);
-          const hasNonPinned = placed.some((v) => !v.pinned);
           const isFilled = placed.length > 0;
-          const clickable = !!selectedVerseId || (hasPinned && !capturePadding);
+          const clickable = !!selectedVerseId;
 
           return (
             <div
@@ -198,28 +150,10 @@ export const CycleDiagram = React.forwardRef<HTMLDivElement, Props>(
                   isShaking={shakeStepId === step.id}
                   isFilled={isFilled}
                   clickable={clickable}
-                  onClick={() => handleCircleClickInternal(step.id, hasPinned && !hasNonPinned)}
+                  onClick={() => handleCircleClickInternal(step.id)}
                 />
 
-                {/* Show indicator for pinned circles (not in export mode) */}
-                {hasPinned && !capturePadding && (
-                  <FilledIndicator onClick={(e) => { e.stopPropagation(); setOpenPopover((prev) => (prev === step.id ? null : step.id)); }} />
-                )}
-
-                {/* Popover for viewing pinned verse text */}
-                <AnimatePresence>
-                  {openPopover === step.id && (
-                    <VersePopover verses={placed} onClose={() => setOpenPopover(null)} />
-                  )}
-                </AnimatePresence>
-
-                {/* Show side panel only for non-pinned placed verses (dragged by user) */}
-                {hasNonPinned && !capturePadding && (
-                  <VerseSidePanel stepId={step.id} verses={placed.filter((v) => !v.pinned)} />
-                )}
-
-                {/* In export/capture mode, show ALL verse panels */}
-                {capturePadding && placed.length > 0 && (
+                {placed.length > 0 && (
                   <VerseSidePanel stepId={step.id} verses={placed} />
                 )}
               </div>
