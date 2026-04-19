@@ -188,7 +188,7 @@ export const CycleDiagram = React.forwardRef<HTMLDivElement, Props>(
                   isShaking={shakeStepId === step.id}
                   isFilled={isFilled}
                   clickable={clickable}
-                  onClick={() => handleCircleClickInternal(step.id, false)}
+                  onClick={() => handleCircleClickInternal(step.id)}
                 />
 
                 {placed.length > 0 && (
