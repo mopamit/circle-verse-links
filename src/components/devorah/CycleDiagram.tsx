@@ -10,6 +10,7 @@ interface Props {
   shakeStepId?: string | null;
   onCircleClick?: (stepId: string) => void;
   selectedVerseId?: string | null;
+  glowStepIds?: string[];
   capturePadding?: { x: number; y: number };
 }
 
