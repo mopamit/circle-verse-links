@@ -179,10 +179,8 @@ export const CycleDiagram = React.forwardRef<HTMLDivElement, Props>(
           const x = Math.cos(rad) * RADIUS;
           const y = Math.sin(rad) * RADIUS;
           const placed = placedVerses[step.id] || [];
-          const hasPinned = placed.some((v) => v.pinned);
-          const hasNonPinned = placed.some((v) => !v.pinned);
           const isFilled = placed.length > 0;
-          const clickable = !!selectedVerseId || (hasPinned && !capturePadding);
+          const clickable = !!selectedVerseId;
 
           return (
             <div
@@ -198,28 +196,10 @@ export const CycleDiagram = React.forwardRef<HTMLDivElement, Props>(
                   isShaking={shakeStepId === step.id}
                   isFilled={isFilled}
                   clickable={clickable}
-                  onClick={() => handleCircleClickInternal(step.id, hasPinned && !hasNonPinned)}
+                  onClick={() => handleCircleClickInternal(step.id, false)}
                 />
 
-                {/* Show indicator for pinned circles (not in export mode) */}
-                {hasPinned && !capturePadding && (
-                  <FilledIndicator onClick={(e) => { e.stopPropagation(); setOpenPopover((prev) => (prev === step.id ? null : step.id)); }} />
-                )}
-
-                {/* Popover for viewing pinned verse text */}
-                <AnimatePresence>
-                  {openPopover === step.id && (
-                    <VersePopover verses={placed} onClose={() => setOpenPopover(null)} />
-                  )}
-                </AnimatePresence>
-
-                {/* Show side panel only for non-pinned placed verses (dragged by user) */}
-                {hasNonPinned && !capturePadding && (
-                  <VerseSidePanel stepId={step.id} verses={placed.filter((v) => !v.pinned)} />
-                )}
-
-                {/* In export/capture mode, show ALL verse panels */}
-                {capturePadding && placed.length > 0 && (
+                {placed.length > 0 && (
                   <VerseSidePanel stepId={step.id} verses={placed} />
                 )}
               </div>
