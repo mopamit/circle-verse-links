@@ -51,27 +51,53 @@ const StepCircle: React.FC<{
   isShaking: boolean;
   isFilled: boolean;
   isOver: boolean;
+  isGlowing: boolean;
   clickable: boolean;
   onClick?: () => void;
   dropRef: (el: HTMLDivElement | null) => void;
-}> = ({ step, isHighlighted, isShaking, isFilled, isOver, clickable, onClick, dropRef }) => {
+}> = ({ step, isHighlighted, isShaking, isFilled, isOver, isGlowing, clickable, onClick, dropRef }) => {
   return (
     <motion.div
       ref={dropRef}
       onClick={clickable ? onClick : undefined}
-      animate={isShaking ? { x: [-4, 4, -4, 4, 0] } : isHighlighted ? { scale: [1, 1.06, 1] } : {}}
-      transition={isHighlighted ? { duration: 1.4, repeat: Infinity } : { duration: 0.4 }}
+      animate={
+        isShaking
+          ? { x: [-4, 4, -4, 4, 0] }
+          : isGlowing
+            ? {
+                scale: [1, 1.05, 1],
+                boxShadow: [
+                  '0 0 0 0 hsl(var(--secondary) / 0.0), 0 0 0 0 hsl(var(--secondary) / 0.0)',
+                  '0 0 0 6px hsl(var(--secondary) / 0.35), 0 0 24px 6px hsl(var(--secondary) / 0.55)',
+                  '0 0 0 0 hsl(var(--secondary) / 0.0), 0 0 0 0 hsl(var(--secondary) / 0.0)',
+                ],
+              }
+            : isHighlighted
+              ? { scale: [1, 1.06, 1] }
+              : {}
+      }
+      transition={
+        isGlowing
+          ? { duration: 1.4, repeat: Infinity, ease: 'easeInOut' }
+          : isHighlighted
+            ? { duration: 1.4, repeat: Infinity }
+            : { duration: 0.4 }
+      }
       className={`
         rounded-full flex items-center justify-center text-center p-3 select-none
         transition-colors duration-300
         ${clickable ? 'cursor-pointer' : 'cursor-default'}
         ${isOver
           ? 'bg-secondary/30 ring-4 ring-secondary'
-          : isFilled
-            ? 'bg-accent text-accent-foreground shadow-lg ring-2 ring-accent'
-            : isHighlighted
-              ? 'bg-secondary/20 ring-2 ring-secondary shadow-lg'
-              : 'bg-card text-primary border-2 border-border shadow-sm'}
+          : isGlowing
+            ? isFilled
+              ? 'bg-accent text-accent-foreground ring-4 ring-secondary'
+              : 'bg-card text-primary ring-4 ring-secondary'
+            : isFilled
+              ? 'bg-accent text-accent-foreground shadow-lg ring-2 ring-accent'
+              : isHighlighted
+                ? 'bg-secondary/20 ring-2 ring-secondary shadow-lg'
+                : 'bg-card text-primary border-2 border-border shadow-sm'}
       `}
       style={{ width: CIRCLE_SIZE, height: CIRCLE_SIZE }}
     >
@@ -86,6 +112,7 @@ const DroppableCircle: React.FC<{
   isHighlighted: boolean;
   isShaking: boolean;
   isFilled: boolean;
+  isGlowing: boolean;
   clickable: boolean;
   onClick?: () => void;
 }> = (props) => {
