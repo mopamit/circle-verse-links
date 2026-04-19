@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useDroppable } from '@dnd-kit/core';
 import { CycleStep, VerseChunk } from '@/data/devorahGame';
 
@@ -16,7 +16,6 @@ interface Props {
 const ANGLES = [-90, -30, 30, 90, 150, 210];
 const RADIUS = 190;
 const CIRCLE_SIZE = 110;
-const PANEL_GAP = 36;
 
 const CurvedArrow: React.FC<{ fromAngle: number; toAngle: number; radius: number; cx: number; cy: number; color?: string }> = ({ fromAngle, toAngle, radius, cx, cy, color = 'hsl(var(--amit-sky))' }) => {
   const off = 15;
@@ -96,43 +95,43 @@ const DroppableCircle: React.FC<{
   return <StepCircle {...props} dropRef={setNodeRef} isOver={isOver} />;
 };
 
-// Verse text shown beside each circle, on the outside of the cycle.
-// Position is computed as one of 6 directions matching the 6 angle positions.
-const VerseSidePanel: React.FC<{ stepId: string; verses: VerseChunk[] }> = ({ stepId, verses }) => {
+/** Popover that shows verse text when clicking a filled circle */
+const VersePopover: React.FC<{ verses: VerseChunk[]; onClose: () => void }> = ({ verses, onClose }) => {
   if (verses.length === 0) return null;
-
-  // Layout matching the reference: pinned/loop verses around aziva on left,
-  // right-side circles (shibud, zeaka) → panels to the right,
-  // left-side circles (sheket, nitzahon) → panels to the left,
-  // bottom circle (shofet) → panel to the left as well.
-  const positions: Record<string, React.CSSProperties> = {
-    aziva:    { left: '50%', bottom: `calc(100% + 8px)`, transform: 'translateX(-50%)' },
-    shibud:   { left: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
-    zeaka:    { left: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
-    shofet:   { right: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
-    nitzahon: { right: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
-    sheket:   { right: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
-  };
-
-  const renderVerseCard = (verse: VerseChunk, style: React.CSSProperties) => (
+  return (
     <motion.div
-      key={verse.id}
-      initial={{ opacity: 0, scale: 0.85 }}
+      initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="absolute z-40 w-52 md:w-56 p-3 rounded-xl bg-card shadow-md ring-1 ring-border pointer-events-none"
-      style={style}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.15 }}
+      className="absolute z-50 w-60 p-3 rounded-xl bg-card shadow-lg ring-1 ring-border"
+      style={{ bottom: `calc(100% + 12px)`, left: '50%', transform: 'translateX(-50%)' }}
     >
-      <p className="text-[11px] leading-relaxed text-primary text-right" dir="rtl">
-        {verse.text}
-      </p>
+      <button
+        onClick={onClose}
+        className="absolute top-1 left-1 text-muted-foreground hover:text-foreground text-xs w-5 h-5 flex items-center justify-center rounded-full"
+      >
+        ✕
+      </button>
+      {verses.map((v, i) => (
+        <p key={v.id} className={`text-[11px] leading-relaxed text-primary text-right ${i > 0 ? 'mt-2 pt-2 border-t border-border' : ''}`} dir="rtl">
+          {v.text}
+        </p>
+      ))}
     </motion.div>
   );
-
-  return renderVerseCard(
-    { id: `${stepId}-panel`, text: verses.map((verse) => verse.text).join('\n\n'), targetStepId: stepId },
-    positions[stepId]
-  );
 };
+
+/** Small indicator showing a verse is placed (for pinned circles) */
+const FilledIndicator: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({ onClick }) => (
+  <button
+    onClick={onClick}
+    className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center text-[10px] font-bold shadow-sm cursor-pointer z-20 hover:scale-110 transition-transform"
+    title="לחצו לצפייה בפסוק"
+  >
+    📖
+  </button>
+);
 
 export const CycleDiagram = React.forwardRef<HTMLDivElement, Props>(
   ({ steps, placedVerses, highlightStepId, shakeStepId, onCircleClick, selectedVerseId, capturePadding }, ref) => {
@@ -141,6 +140,20 @@ export const CycleDiagram = React.forwardRef<HTMLDivElement, Props>(
     const frameHeight = SIZE + (capturePadding?.y ?? 0) * 2;
     const centerX = frameWidth / 2;
     const centerY = frameHeight / 2;
+
+    const [openPopover, setOpenPopover] = useState<string | null>(null);
+
+    const handleCircleClickInternal = (stepId: string, hasPinnedOnly: boolean) => {
+      if (selectedVerseId) {
+        // If a verse is selected for placement, forward to parent
+        onCircleClick?.(stepId);
+        return;
+      }
+      if (hasPinnedOnly) {
+        // Toggle popover for pinned circles
+        setOpenPopover((prev) => (prev === stepId ? null : stepId));
+      }
+    };
 
     return (
       <div ref={ref} className="relative mx-auto" style={{ width: frameWidth, height: frameHeight, overflow: 'visible' }}>
@@ -166,16 +179,18 @@ export const CycleDiagram = React.forwardRef<HTMLDivElement, Props>(
           const x = Math.cos(rad) * RADIUS;
           const y = Math.sin(rad) * RADIUS;
           const placed = placedVerses[step.id] || [];
-          const targetVerseCount = 1;
-          const isFilled = placed.length >= targetVerseCount;
-          const clickable = !!selectedVerseId;
+          const hasPinned = placed.some((v) => v.pinned);
+          const hasNonPinned = placed.some((v) => !v.pinned);
+          const isFilled = placed.length > 0;
+          const clickable = !!selectedVerseId || (hasPinned && !capturePadding);
 
           return (
-            <React.Fragment key={step.id}>
-              <div
-                className="absolute z-10"
-                style={{ left: centerX, top: centerY, transform: `translate(-50%, -50%) translate(${x}px, ${y}px)` }}
-              >
+            <div
+              key={step.id}
+              className="absolute z-10"
+              style={{ left: centerX, top: centerY, transform: `translate(-50%, -50%) translate(${x}px, ${y}px)` }}
+            >
+              <div className="relative">
                 <DroppableCircle
                   step={step}
                   index={i}
@@ -183,16 +198,32 @@ export const CycleDiagram = React.forwardRef<HTMLDivElement, Props>(
                   isShaking={shakeStepId === step.id}
                   isFilled={isFilled}
                   clickable={clickable}
-                  onClick={() => onCircleClick?.(step.id)}
+                  onClick={() => handleCircleClickInternal(step.id, hasPinned && !hasNonPinned)}
                 />
+
+                {/* Show indicator for pinned circles (not in export mode) */}
+                {hasPinned && !capturePadding && (
+                  <FilledIndicator onClick={(e) => { e.stopPropagation(); setOpenPopover((prev) => (prev === step.id ? null : step.id)); }} />
+                )}
+
+                {/* Popover for viewing pinned verse text */}
+                <AnimatePresence>
+                  {openPopover === step.id && (
+                    <VersePopover verses={placed} onClose={() => setOpenPopover(null)} />
+                  )}
+                </AnimatePresence>
+
+                {/* Show side panel only for non-pinned placed verses (dragged by user) */}
+                {hasNonPinned && !capturePadding && (
+                  <VerseSidePanel stepId={step.id} verses={placed.filter((v) => !v.pinned)} />
+                )}
+
+                {/* In export/capture mode, show ALL verse panels */}
+                {capturePadding && placed.length > 0 && (
+                  <VerseSidePanel stepId={step.id} verses={placed} />
+                )}
               </div>
-              <div
-                className="absolute z-30 pointer-events-none"
-                style={{ left: centerX, top: centerY, transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`, width: CIRCLE_SIZE, height: CIRCLE_SIZE }}
-              >
-                <VerseSidePanel stepId={step.id} verses={placed} />
-              </div>
-            </React.Fragment>
+            </div>
           );
         })}
       </div>
@@ -201,3 +232,31 @@ export const CycleDiagram = React.forwardRef<HTMLDivElement, Props>(
 );
 
 CycleDiagram.displayName = 'CycleDiagram';
+
+// Verse text shown beside each circle, on the outside of the cycle (for export and dragged verses).
+const PANEL_GAP = 36;
+const VerseSidePanel: React.FC<{ stepId: string; verses: VerseChunk[] }> = ({ stepId, verses }) => {
+  if (verses.length === 0) return null;
+
+  const positions: Record<string, React.CSSProperties> = {
+    aziva:    { left: '50%', bottom: `calc(100% + 8px)`, transform: 'translateX(-50%)' },
+    shibud:   { left: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
+    zeaka:    { left: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
+    shofet:   { right: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
+    nitzahon: { right: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
+    sheket:   { right: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.85 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="absolute z-40 w-52 md:w-56 p-3 rounded-xl bg-card shadow-md ring-1 ring-border pointer-events-none"
+      style={positions[stepId]}
+    >
+      <p className="text-[11px] leading-relaxed text-primary text-right" dir="rtl">
+        {verses.map((verse) => verse.text).join('\n\n')}
+      </p>
+    </motion.div>
+  );
+};
