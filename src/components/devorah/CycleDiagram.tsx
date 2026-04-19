@@ -124,12 +124,13 @@ const DroppableCircle: React.FC<{
 };
 
 export const CycleDiagram = React.forwardRef<HTMLDivElement, Props>(
-  ({ steps, placedVerses, highlightStepId, shakeStepId, onCircleClick, selectedVerseId, capturePadding }, ref) => {
+  ({ steps, placedVerses, highlightStepId, shakeStepId, onCircleClick, selectedVerseId, glowStepIds, capturePadding }, ref) => {
     const SIZE = 560;
     const frameWidth = SIZE + (capturePadding?.x ?? 0) * 2;
     const frameHeight = SIZE + (capturePadding?.y ?? 0) * 2;
     const centerX = frameWidth / 2;
     const centerY = frameHeight / 2;
+    const glowSet = new Set(glowStepIds ?? []);
 
     const handleCircleClickInternal = (stepId: string) => {
       if (selectedVerseId) {
@@ -177,6 +178,7 @@ export const CycleDiagram = React.forwardRef<HTMLDivElement, Props>(
                   isHighlighted={highlightStepId === step.id}
                   isShaking={shakeStepId === step.id}
                   isFilled={isFilled}
+                  isGlowing={glowSet.has(step.id)}
                   clickable={clickable}
                   onClick={() => handleCircleClickInternal(step.id)}
                 />
