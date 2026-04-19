@@ -195,24 +195,49 @@ CycleDiagram.displayName = 'CycleDiagram';
 
 // Verse text shown beside each circle, on the outside of the cycle (for export and dragged verses).
 const PANEL_GAP = 36;
+
+// For aziva (top), show first verse to the right of the circle and second to the left.
+const AZIVA_RIGHT: React.CSSProperties = { right: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' };
+const AZIVA_LEFT: React.CSSProperties = { left: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' };
+
+const DEFAULT_POSITIONS: Record<string, React.CSSProperties> = {
+  shibud:   { left: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
+  zeaka:    { left: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
+  shofet:   { right: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
+  nitzahon: { right: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
+  sheket:   { right: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
+};
+
+const SinglePanel: React.FC<{ verse: VerseChunk; style: React.CSSProperties }> = ({ verse, style }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.85 }}
+    animate={{ opacity: 1, scale: 1 }}
+    className="absolute z-40 w-52 md:w-56 p-3 rounded-xl bg-card shadow-md ring-1 ring-border pointer-events-none"
+    style={style}
+    dir="rtl"
+  >
+    <p className="text-[11px] leading-relaxed text-primary text-right">{verse.text}</p>
+  </motion.div>
+);
+
 const VerseSidePanel: React.FC<{ stepId: string; verses: VerseChunk[] }> = ({ stepId, verses }) => {
   if (verses.length === 0) return null;
 
-  const positions: Record<string, React.CSSProperties> = {
-    aziva:    { left: '50%', bottom: `calc(100% + 8px)`, transform: 'translateX(-50%)' },
-    shibud:   { left: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
-    zeaka:    { left: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
-    shofet:   { right: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
-    nitzahon: { right: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
-    sheket:   { right: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
-  };
+  if (stepId === 'aziva') {
+    return (
+      <>
+        {verses[0] && <SinglePanel verse={verses[0]} style={AZIVA_RIGHT} />}
+        {verses[1] && <SinglePanel verse={verses[1]} style={AZIVA_LEFT} />}
+      </>
+    );
+  }
 
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.85 }}
       animate={{ opacity: 1, scale: 1 }}
       className="absolute z-40 w-52 md:w-56 p-3 rounded-xl bg-card shadow-md ring-1 ring-border pointer-events-none flex flex-col gap-2"
-      style={positions[stepId]}
+      style={DEFAULT_POSITIONS[stepId]}
       dir="rtl"
     >
       {verses.map((verse) => (
