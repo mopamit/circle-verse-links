@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Simpler';
+  src: url('/fonts/SimplerPro-Regular.woff2') format('woff2'),
+       url('/fonts/SimplerPro-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Simpler';
+  src: url('/fonts/SimplerPro-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Simpler';
+  src: url('/fonts/SimplerPro-Black.woff2') format('woff2'),
+       url('/fonts/SimplerPro-Black.woff') format('woff');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --background: 210 33% 98%;
+    --foreground: 213 64% 22%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 213 64% 22%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 213 64% 22%;
+
+    --primary: 213 64% 22%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 196 73% 51%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 20% 94%;
+    --muted-foreground: 163 17% 41%;
+
+    --accent: 68 72% 43%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 213 30% 88%;
+    --input: 213 30% 88%;
+    --ring: 196 73% 51%;
+
+    --radius: 0.75rem;
+
+    --amit-lime: 68 72% 43%;
+    --amit-navy: 213 64% 22%;
+    --amit-sky: 196 73% 51%;
+    --amit-teal-dark: 193 55% 32%;
+    --amit-mint: 140 30% 60%;
+    --amit-teal: 163 27% 41%;
+    --amit-forest: 89 31% 36%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Simpler', system-ui, sans-serif;
+  }
+}

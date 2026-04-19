@@ -1,0 +1,203 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { useDroppable } from '@dnd-kit/core';
+import { CycleStep, VerseChunk } from '@/data/devorahGame';
+
+interface Props {
+  steps: CycleStep[];
+  placedVerses: Record<string, VerseChunk[]>;
+  highlightStepId?: string | null;
+  shakeStepId?: string | null;
+  onCircleClick?: (stepId: string) => void;
+  selectedVerseId?: string | null;
+  capturePadding?: { x: number; y: number };
+}
+
+const ANGLES = [-90, -30, 30, 90, 150, 210];
+const RADIUS = 190;
+const CIRCLE_SIZE = 110;
+const PANEL_GAP = 36;
+
+const CurvedArrow: React.FC<{ fromAngle: number; toAngle: number; radius: number; cx: number; cy: number; color?: string }> = ({ fromAngle, toAngle, radius, cx, cy, color = 'hsl(var(--amit-sky))' }) => {
+  const off = 15;
+  const sR = ((fromAngle + off) * Math.PI) / 180;
+  const eR = ((toAngle - off) * Math.PI) / 180;
+  const x1 = cx + Math.cos(sR) * radius;
+  const y1 = cy + Math.sin(sR) * radius;
+  const x2 = cx + Math.cos(eR) * radius;
+  const y2 = cy + Math.sin(eR) * radius;
+  const midR = (((fromAngle + toAngle) / 2) * Math.PI) / 180;
+  const bulge = 18;
+  const mx = cx + Math.cos(midR) * (radius + bulge);
+  const my = cy + Math.sin(midR) * (radius + bulge);
+  const arrAngle = Math.atan2(y2 - my, x2 - mx);
+  const aL = 8;
+  const a1x = x2 - aL * Math.cos(arrAngle - 0.4);
+  const a1y = y2 - aL * Math.sin(arrAngle - 0.4);
+  const a2x = x2 - aL * Math.cos(arrAngle + 0.4);
+  const a2y = y2 - aL * Math.sin(arrAngle + 0.4);
+
+  return (
+    <g>
+      <path d={`M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+      <polygon points={`${x2},${y2} ${a1x},${a1y} ${a2x},${a2y}`} fill={color} />
+    </g>
+  );
+};
+
+const StepCircle: React.FC<{
+  step: CycleStep;
+  isHighlighted: boolean;
+  isShaking: boolean;
+  isFilled: boolean;
+  isOver: boolean;
+  clickable: boolean;
+  onClick?: () => void;
+  dropRef: (el: HTMLDivElement | null) => void;
+}> = ({ step, isHighlighted, isShaking, isFilled, isOver, clickable, onClick, dropRef }) => {
+  return (
+    <motion.div
+      ref={dropRef}
+      onClick={clickable ? onClick : undefined}
+      animate={isShaking ? { x: [-4, 4, -4, 4, 0] } : isHighlighted ? { scale: [1, 1.06, 1] } : {}}
+      transition={isHighlighted ? { duration: 1.4, repeat: Infinity } : { duration: 0.4 }}
+      className={`
+        rounded-full flex items-center justify-center text-center p-3 select-none
+        transition-colors duration-300
+        ${clickable ? 'cursor-pointer' : 'cursor-default'}
+        ${isOver
+          ? 'bg-secondary/30 ring-4 ring-secondary'
+          : isFilled
+            ? 'bg-accent text-accent-foreground shadow-lg ring-2 ring-accent'
+            : isHighlighted
+              ? 'bg-secondary/20 ring-2 ring-secondary shadow-lg'
+              : 'bg-card text-primary border-2 border-border shadow-sm'}
+      `}
+      style={{ width: CIRCLE_SIZE, height: CIRCLE_SIZE }}
+    >
+      <span className="text-sm font-bold leading-tight whitespace-pre-line">{step.label}</span>
+    </motion.div>
+  );
+};
+
+const DroppableCircle: React.FC<{
+  step: CycleStep;
+  index: number;
+  isHighlighted: boolean;
+  isShaking: boolean;
+  isFilled: boolean;
+  clickable: boolean;
+  onClick?: () => void;
+}> = (props) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `circle-${props.step.id}`,
+    data: { type: 'circle', stepId: props.step.id },
+  });
+  return <StepCircle {...props} dropRef={setNodeRef} isOver={isOver} />;
+};
+
+// Verse text shown beside each circle, on the outside of the cycle.
+// Position is computed as one of 6 directions matching the 6 angle positions.
+const VerseSidePanel: React.FC<{ stepId: string; verses: VerseChunk[] }> = ({ stepId, verses }) => {
+  if (verses.length === 0) return null;
+
+  // Layout matching the reference: pinned/loop verses around aziva on left,
+  // right-side circles (shibud, zeaka) → panels to the right,
+  // left-side circles (sheket, nitzahon) → panels to the left,
+  // bottom circle (shofet) → panel to the left as well.
+  const positions: Record<string, React.CSSProperties> = {
+    aziva:    { left: '50%', bottom: `calc(100% + 8px)`, transform: 'translateX(-50%)' },
+    shibud:   { left: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
+    zeaka:    { left: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
+    shofet:   { right: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
+    nitzahon: { right: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
+    sheket:   { right: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
+  };
+
+  const renderVerseCard = (verse: VerseChunk, style: React.CSSProperties) => (
+    <motion.div
+      key={verse.id}
+      initial={{ opacity: 0, scale: 0.85 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="absolute z-40 w-52 md:w-56 p-3 rounded-xl bg-card shadow-md ring-1 ring-border pointer-events-none"
+      style={style}
+    >
+      <p className="text-[11px] leading-relaxed text-primary text-right" dir="rtl">
+        {verse.text}
+      </p>
+    </motion.div>
+  );
+
+  return renderVerseCard(
+    { id: `${stepId}-panel`, text: verses.map((verse) => verse.text).join('\n\n'), targetStepId: stepId },
+    positions[stepId]
+  );
+};
+
+export const CycleDiagram = React.forwardRef<HTMLDivElement, Props>(
+  ({ steps, placedVerses, highlightStepId, shakeStepId, onCircleClick, selectedVerseId, capturePadding }, ref) => {
+    const SIZE = 560;
+    const frameWidth = SIZE + (capturePadding?.x ?? 0) * 2;
+    const frameHeight = SIZE + (capturePadding?.y ?? 0) * 2;
+    const centerX = frameWidth / 2;
+    const centerY = frameHeight / 2;
+
+    return (
+      <div ref={ref} className="relative mx-auto" style={{ width: frameWidth, height: frameHeight, overflow: 'visible' }}>
+        <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" style={{ overflow: 'visible' }}>
+          {ANGLES.map((angle, i) => {
+            const next = i < ANGLES.length - 1 ? ANGLES[i + 1] : ANGLES[0] + 360;
+            return (
+              <CurvedArrow
+                key={i}
+                fromAngle={angle}
+                toAngle={next}
+                radius={RADIUS + CIRCLE_SIZE / 2 + 4}
+                cx={centerX}
+                cy={centerY}
+              />
+            );
+          })}
+        </svg>
+
+        {steps.map((step, i) => {
+          const angle = ANGLES[i];
+          const rad = (angle * Math.PI) / 180;
+          const x = Math.cos(rad) * RADIUS;
+          const y = Math.sin(rad) * RADIUS;
+          const placed = placedVerses[step.id] || [];
+          const targetVerseCount = 1;
+          const isFilled = placed.length >= targetVerseCount;
+          const clickable = !!selectedVerseId;
+
+          return (
+            <React.Fragment key={step.id}>
+              <div
+                className="absolute z-10"
+                style={{ left: centerX, top: centerY, transform: `translate(-50%, -50%) translate(${x}px, ${y}px)` }}
+              >
+                <DroppableCircle
+                  step={step}
+                  index={i}
+                  isHighlighted={highlightStepId === step.id}
+                  isShaking={shakeStepId === step.id}
+                  isFilled={isFilled}
+                  clickable={clickable}
+                  onClick={() => onCircleClick?.(step.id)}
+                />
+              </div>
+              <div
+                className="absolute z-30 pointer-events-none"
+                style={{ left: centerX, top: centerY, transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`, width: CIRCLE_SIZE, height: CIRCLE_SIZE }}
+              >
+                <VerseSidePanel stepId={step.id} verses={placed} />
+              </div>
+            </React.Fragment>
+          );
+        })}
+      </div>
+    );
+  }
+);
+
+CycleDiagram.displayName = 'CycleDiagram';
