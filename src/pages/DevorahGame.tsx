@@ -212,7 +212,7 @@ const DevorahGame: React.FC = () => {
           </div>
 
           <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-8">
-            <div className="lg:w-80 w-full flex flex-col gap-3 order-2 lg:order-1">
+            <div className="lg:w-80 w-full flex flex-col gap-3 order-2 lg:order-3">
               <div className="text-center lg:text-right">
                 <h2 className="text-lg font-bold text-primary">פסוקים לגרירה</h2>
               </div>
