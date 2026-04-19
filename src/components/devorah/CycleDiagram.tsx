@@ -63,26 +63,22 @@ const StepCircle: React.FC<{
       animate={
         isShaking
           ? { x: [-4, 4, -4, 4, 0] }
-          : isGlowing
-            ? {
-                scale: [1, 1.05, 1],
-                boxShadow: [
-                  '0 0 0 0 hsl(var(--secondary) / 0.0), 0 0 0 0 hsl(var(--secondary) / 0.0)',
-                  '0 0 0 6px hsl(var(--secondary) / 0.35), 0 0 24px 6px hsl(var(--secondary) / 0.55)',
-                  '0 0 0 0 hsl(var(--secondary) / 0.0), 0 0 0 0 hsl(var(--secondary) / 0.0)',
-                ],
-              }
-            : isHighlighted
-              ? { scale: [1, 1.06, 1] }
-              : {}
+          : isHighlighted
+            ? { scale: [1, 1.06, 1] }
+            : {}
       }
       transition={
-        isGlowing
-          ? { duration: 1.4, repeat: Infinity, ease: 'easeInOut' }
-          : isHighlighted
-            ? { duration: 1.4, repeat: Infinity }
-            : { duration: 0.4 }
+        isHighlighted
+          ? { duration: 1.4, repeat: Infinity }
+          : { duration: 0.4 }
       }
+      style={{
+        width: CIRCLE_SIZE,
+        height: CIRCLE_SIZE,
+        boxShadow: isGlowing
+          ? '0 0 0 6px hsl(var(--secondary) / 0.45), 0 0 28px 8px hsl(var(--secondary) / 0.6)'
+          : undefined,
+      }}
       className={`
         rounded-full flex items-center justify-center text-center p-3 select-none
         transition-colors duration-300
