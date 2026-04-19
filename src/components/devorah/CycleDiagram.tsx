@@ -95,44 +95,6 @@ const DroppableCircle: React.FC<{
   return <StepCircle {...props} dropRef={setNodeRef} isOver={isOver} />;
 };
 
-/** Popover that shows verse text when clicking a filled circle */
-const VersePopover: React.FC<{ verses: VerseChunk[]; onClose: () => void }> = ({ verses, onClose }) => {
-  if (verses.length === 0) return null;
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ duration: 0.15 }}
-      className="absolute z-50 w-60 p-3 rounded-xl bg-card shadow-lg ring-1 ring-border"
-      style={{ bottom: `calc(100% + 12px)`, left: '50%', transform: 'translateX(-50%)' }}
-    >
-      <button
-        onClick={onClose}
-        className="absolute top-1 left-1 text-muted-foreground hover:text-foreground text-xs w-5 h-5 flex items-center justify-center rounded-full"
-      >
-        ✕
-      </button>
-      {verses.map((v, i) => (
-        <p key={v.id} className={`text-[11px] leading-relaxed text-primary text-right ${i > 0 ? 'mt-2 pt-2 border-t border-border' : ''}`} dir="rtl">
-          {v.text}
-        </p>
-      ))}
-    </motion.div>
-  );
-};
-
-/** Small indicator showing a verse is placed (for pinned circles) */
-const FilledIndicator: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({ onClick }) => (
-  <button
-    onClick={onClick}
-    className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center text-[10px] font-bold shadow-sm cursor-pointer z-20 hover:scale-110 transition-transform"
-    title="לחצו לצפייה בפסוק"
-  >
-    📖
-  </button>
-);
-
 export const CycleDiagram = React.forwardRef<HTMLDivElement, Props>(
   ({ steps, placedVerses, highlightStepId, shakeStepId, onCircleClick, selectedVerseId, capturePadding }, ref) => {
     const SIZE = 560;
