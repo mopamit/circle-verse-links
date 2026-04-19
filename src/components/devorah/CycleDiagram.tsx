@@ -95,8 +95,8 @@ const StepCircle: React.FC<{
                 ? 'bg-secondary/20 ring-2 ring-secondary shadow-lg'
                 : 'bg-card text-primary border-2 border-border shadow-sm'}
       `}
-      style={{ width: CIRCLE_SIZE, height: CIRCLE_SIZE }}
     >
+
       <span className="text-sm font-bold leading-tight whitespace-pre-line">{step.label}</span>
     </motion.div>
   );
