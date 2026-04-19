@@ -239,6 +239,7 @@ const DevorahGame: React.FC = () => {
                 shakeStepId={shakeStepId}
                 onCircleClick={handleCircleClick}
                 selectedVerseId={selectedVerseId}
+                glowStepIds={selectedVerseId ? Array.from(new Set(draggableVerses.map((v) => v.targetStepId))) : []}
               />
             </div>
           </div>
