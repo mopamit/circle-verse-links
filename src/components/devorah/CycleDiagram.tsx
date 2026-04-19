@@ -141,17 +141,9 @@ export const CycleDiagram = React.forwardRef<HTMLDivElement, Props>(
     const centerX = frameWidth / 2;
     const centerY = frameHeight / 2;
 
-    const [openPopover, setOpenPopover] = useState<string | null>(null);
-
-    const handleCircleClickInternal = (stepId: string, hasPinnedOnly: boolean) => {
+    const handleCircleClickInternal = (stepId: string) => {
       if (selectedVerseId) {
-        // If a verse is selected for placement, forward to parent
         onCircleClick?.(stepId);
-        return;
-      }
-      if (hasPinnedOnly) {
-        // Toggle popover for pinned circles
-        setOpenPopover((prev) => (prev === stepId ? null : stepId));
       }
     };
 
