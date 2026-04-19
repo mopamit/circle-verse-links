@@ -158,7 +158,7 @@ const DevorahGame: React.FC = () => {
       ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
       ctx.direction = 'rtl';
-      ctx.fillText('מעגל תקופת השופטת דבורה', canvasW - PAD - logoImg.width * (HEADER_H / logoImg.height) - 24, PAD + HEADER_H / 2);
+      ctx.fillText('מעגל תקופת השופט גדעון', canvasW - PAD - logoImg.width * (HEADER_H / logoImg.height) - 24, PAD + HEADER_H / 2);
 
       // Logo on the left
       const logoH = HEADER_H;
@@ -170,7 +170,7 @@ const DevorahGame: React.FC = () => {
 
       const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
-      link.download = 'מעגל-דבורה.png';
+      link.download = 'מעגל-גדעון.png';
       link.href = dataUrl;
       link.click();
     } catch (err) {
@@ -199,7 +199,7 @@ const DevorahGame: React.FC = () => {
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <main className="max-w-7xl mx-auto px-4 pb-24">
           <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-primary tracking-tight mb-2">הסיפור של דבורה</h1>
+            <h1 className="text-3xl font-bold text-primary tracking-tight mb-2">הסיפור של גדעון</h1>
             <p className="text-primary text-base font-bold leading-relaxed max-w-2xl mx-auto">
               {INSTRUCTION.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
                 part.startsWith('**') && part.endsWith('**') ? (
@@ -214,7 +214,7 @@ const DevorahGame: React.FC = () => {
           <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-8">
             <div className="lg:w-80 w-full flex flex-col gap-3 order-2 lg:order-1">
               <div className="text-center lg:text-right">
-                <h2 className="text-lg font-bold text-primary">פסוקים מספר שופטים</h2>
+                <h2 className="text-lg font-bold text-primary">פסוקים לגרירה</h2>
               </div>
               {draggableVerses.map((verse) => (
                 <VerseCard
@@ -281,7 +281,7 @@ const DevorahGame: React.FC = () => {
             >
               <h2 className="text-3xl font-bold text-primary mb-4">כל הכבוד! 🎉</h2>
               <p className="text-foreground/80 leading-relaxed mb-6">
-                השלמתם את מעגל תקופת השופטת דבורה. אפשר להוריד את התמונה לזיכרון.
+                השלמתם את מעגל תקופת השופט גדעון. אפשר להוריד את התמונה לזיכרון.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
@@ -329,10 +329,10 @@ const DevorahGame: React.FC = () => {
                 )}
               </p>
               <p className="text-foreground/80 mb-3 leading-relaxed">
-                הפסוק הראשון כבר משובץ ליד "עזיבת ה'". גררו את שאר הפסוקים אל העיגול המתאים, או לחצו על פסוק ואז על העיגול.
+                ארבעה פסוקים כבר משובצים על העיגולים הראשונים של מעגל תקופת גדעון. גררו את שלושת הפסוקים הנותרים אל העיגול המתאים, או לחצו על פסוק ואז על העיגול.
               </p>
               <p className="text-foreground/80 mb-6 leading-relaxed">
-                שימו לב — הפסוק האחרון מחזיר אותנו אל תחילת המעגל. בסיום אפשר להוריד תמונה של המעגל המלא.
+                שימו לב — הפסוק האחרון מחזיר אותנו אל תחילת המעגל ("עזיבת ה'"). בסיום אפשר להוריד תמונה של המעגל המלא.
               </p>
               <button
                 onClick={() => setShowInstructions(false)}
