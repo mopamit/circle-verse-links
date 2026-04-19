@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
 import { useDroppable } from '@dnd-kit/core';
 import { CycleStep, VerseChunk } from '@/data/devorahGame';
 
