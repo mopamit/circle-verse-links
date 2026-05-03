@@ -202,11 +202,13 @@ const AZIVA_RIGHT: React.CSSProperties = { left: `calc(100% + ${PANEL_GAP}px)`, 
 const AZIVA_LEFT: React.CSSProperties = { right: `calc(100% + ${PANEL_GAP}px)`, bottom: 'calc(50% + 8px)' };
 
 const DEFAULT_POSITIONS: Record<string, React.CSSProperties> = {
+  // Right-side circles → panel to the right of the circle
   shibud:   { left: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
   zeaka:    { left: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
-  shofet:   { right: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
-  nitzahon: { right: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
-  sheket:   { right: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
+  // Left-side circles → panel placed vertically (above/below) so it doesn't overlap the verse pool on the left
+  shofet:   { top: `calc(100% + ${PANEL_GAP}px)`, left: '50%', transform: 'translateX(-50%)' },
+  nitzahon: { top: `calc(100% + ${PANEL_GAP}px)`, left: '50%', transform: 'translateX(-50%)' },
+  sheket:   { bottom: `calc(100% + ${PANEL_GAP}px)`, left: '50%', transform: 'translateX(-50%)' },
 };
 
 const SinglePanel: React.FC<{ verse: VerseChunk; style: React.CSSProperties }> = ({ verse, style }) => (
