@@ -196,9 +196,10 @@ CycleDiagram.displayName = 'CycleDiagram';
 // Verse text shown beside each circle, on the outside of the cycle (for export and dragged verses).
 const PANEL_GAP = 36;
 
-// For aziva (top), show first verse to the right of the circle and second to the left.
-const AZIVA_RIGHT: React.CSSProperties = { right: `calc(100% + ${PANEL_GAP}px)`, bottom: 'calc(50% + 8px)' };
-const AZIVA_LEFT: React.CSSProperties = { left: `calc(100% + ${PANEL_GAP}px)`, bottom: 'calc(50% + 8px)' };
+// For aziva (top), show first verse visually to the right of the circle and second to the left.
+// In CSS, `left` = physical left edge, `right` = physical right edge (independent of RTL).
+const AZIVA_RIGHT: React.CSSProperties = { left: `calc(100% + ${PANEL_GAP}px)`, bottom: 'calc(50% + 8px)' };
+const AZIVA_LEFT: React.CSSProperties = { right: `calc(100% + ${PANEL_GAP}px)`, bottom: 'calc(50% + 8px)' };
 
 const DEFAULT_POSITIONS: Record<string, React.CSSProperties> = {
   shibud:   { left: `calc(100% + ${PANEL_GAP}px)`, top: '50%', transform: 'translateY(-50%)' },
